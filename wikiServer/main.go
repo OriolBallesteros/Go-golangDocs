@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -40,8 +39,11 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
+func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	// title, err := getTitle(w, r)
+	// if err != nil {
+	// 	return
+	// }
 	page, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -51,8 +53,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate("view", w, page)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/edit/"):]
+func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+	// title, err := getTitle(w, r)
+	// if err != nil {
+	// 	return
+	// }
 	page, err := loadPage(title)
 	if err != nil {
 		page = &Page{Title: title}
@@ -61,8 +66,11 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate("edit", w, page)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/save/"):]
+func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	// title, err := getTitle(w, r)
+	// if err != nil {
+	// 	return
+	// }
 	body := r.FormValue("body")
 	page := &Page{Title: title, Body: []byte(body)}
 	err := page.saveAsFile()
@@ -81,11 +89,26 @@ func renderTemplate(tmpl string, w http.ResponseWriter, page *Page) {
 	}
 }
 
-func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
-	m := validPath.FindStringSubmatch(r.URL.Path)
-	if m == nil {
-		http.NotFound(w, r)
-		return "", errors.New("Invalid page title")
+/*
+ * When using getTitle on every handler, it makes us handle the error every and each time.
+ * Wrapping it at makeHandler allows us to overcome this code repetition
+ */
+// func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+// 	match := validPath.FindStringSubmatch(r.URL.Path)
+// 	if match == nil {
+// 		http.NotFound(w, r)
+// 		return "", errors.New("Invalid page title")
+// 	}
+// 	return match[2], nil
+// }
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		match := validPath.FindStringSubmatch(r.URL.Path)
+		if match == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, match[2])
 	}
-	return m[2], nil
 }
