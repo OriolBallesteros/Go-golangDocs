@@ -17,9 +17,9 @@ var templates = template.Must(template.ParseFiles("template/edit.gohtml", "templ
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 func main() {
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler)) // url: "/save/foo" will create foo file
+	http.HandleFunc("/edit/", makeHandler(editHandler)) // url: "edit/foo" allows user to edit content in file
+	http.HandleFunc("/view/", makeHandler(viewHandler)) // url: "/view"
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
