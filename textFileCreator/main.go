@@ -27,6 +27,7 @@ func main() {
 func provideFlags() (*string, *string) {
 	title := flag.String("wt", "title", "activate this flag to write directly on the console the title of your txt file")
 	body := flag.String("wb", "This is a sample Page body.", "activate this flag to write directly on the console the body of your txt file")
+	//go run main.go -wt "mycustomtitle" -wb "my custom body"
 	flag.Parse()
 
 	return title, body
